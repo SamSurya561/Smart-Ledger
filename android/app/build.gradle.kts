@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.surya.smartledger"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.surya.smartledger"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
     }
