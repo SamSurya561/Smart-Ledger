@@ -12,7 +12,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 1; // Default to the "Batches" page
+  int _selectedIndex = 0; // Default to the "Dashboard" page
 
   // A list of the pages to be displayed in the body
   static const List<Widget> _pages = <Widget>[
@@ -70,14 +70,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // The FloatingActionButton is only shown when the "Batches" page is active
       floatingActionButton: _selectedIndex == 1
           ? FloatingActionButton(
-        onPressed: () {
-          // This calls the function from our separate dialog file
-          showAddBatchDialog(context);
-        },
-        child: const Icon(Icons.add),
-      )
+              onPressed: () {
+                // This calls the function from our separate dialog file
+                showAddBatchDialog(context);
+              },
+              child: const Icon(Icons.add),
+            )
           : null,
     );
   }
 }
-

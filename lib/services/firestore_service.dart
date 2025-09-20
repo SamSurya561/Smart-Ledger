@@ -1,99 +1,61 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/batch_model.dart';
-import '../models/payout_model.dart';
+import 'package:smartledger/models/batch_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // ------------------ BATCHES ------------------
+  User? get _currentUser => _auth.currentUser;
 
-  // Get a stream of batches for the current user
-  Stream<List<Batch>> getBatches() {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return Stream.value([]); // Return empty stream if user is not logged in
-    }
+  /// Returns the current user's UID.
+  String? get _uid => _currentUser?.uid;
 
+  /// Firestore collection reference for the user's batches.
+  CollectionReference<Batch> get _batchesRef {
+    if (_uid == null) throw Exception("User not logged in");
     return _db
         .collection('users')
-        .doc(user.uid)
+        .doc(_uid)
         .collection('batches')
+        .withConverter<Batch>(
+          fromFirestore: (snapshot, _) => Batch.fromFirestore(snapshot),
+          toFirestore: (batch, _) => batch.toFirestore(),
+        );
+  }
+
+  // --- Batch Operations ---
+
+  /// Adds a new batch to Firestore.
+  Future<void> addBatch(Map<String, dynamic> data) async {
+    if (_uid == null) return;
+
+    // Add server timestamp for receivedDate and associate with user.
+    final batchData = {
+      ...data,
+      'receivedDate': FieldValue.serverTimestamp(), // Use server-side timestamp.
+      'ownerUid': _uid,
+    };
+
+    await _batchesRef.add(Batch.fromMap(batchData));
+  }
+
+  /// Retrieves a real-time stream of the user's batches.
+  Stream<List<Batch>> getBatches() {
+    return _batchesRef
         .orderBy('receivedDate', descending: true)
         .snapshots()
         .map((snapshot) =>
-        snapshot.docs.map((doc) => Batch.fromFirestore(doc, doc.id)).toList());
+            snapshot.docs.map((doc) => doc.data()).toList());
   }
 
-  // Add a new batch
-  Future<void> addBatch(Map<String, dynamic> batchData) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final dataToSave = {
-      ...batchData,
-      'ownerUid': user.uid,
-      'receivedDate': FieldValue.serverTimestamp(),
-    };
-
-    await _db.collection('users').doc(user.uid).collection('batches').add(dataToSave);
+  /// Updates an existing batch.
+  Future<void> updateBatch(String batchId, Map<String, dynamic> data) async {
+    await _batchesRef.doc(batchId).update(data);
   }
 
-  // ✅ Update existing batch
-  Future<void> updateBatch(String batchId, Map<String, dynamic> batchData) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    await _db
-        .collection('users')
-        .doc(user.uid)
-        .collection('batches')
-        .doc(batchId)
-        .update(batchData);
-  }
-
-  // ✅ Delete batch
+  /// Deletes a batch.
   Future<void> deleteBatch(String batchId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    await _db
-        .collection('users')
-        .doc(user.uid)
-        .collection('batches')
-        .doc(batchId)
-        .delete();
-  }
-
-  // ------------------ PAYOUTS ------------------
-
-  // Get live payouts (global for now, not batch-scoped)
-  Stream<List<Payout>> getPayouts() {
-    final user = _auth.currentUser;
-    if (user == null) return Stream.value([]);
-
-    return _db
-        .collection('users')
-        .doc(user.uid)
-        .collection('payouts')
-        .orderBy('paidDate', descending: true)
-        .snapshots()
-        .map((snapshot) =>
-        snapshot.docs.map((doc) => Payout.fromFirestore(doc, doc.id)).toList());
-  }
-
-  // Add payout
-  Future<void> addPayout(Map<String, dynamic> payoutData) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
-
-    final dataToSave = {
-      ...payoutData,
-      'ownerUid': user.uid,
-      'paidDate': FieldValue.serverTimestamp(),
-    };
-
-    await _db.collection('users').doc(user.uid).collection('payouts').add(dataToSave);
+    await _batchesRef.doc(batchId).delete();
   }
 }

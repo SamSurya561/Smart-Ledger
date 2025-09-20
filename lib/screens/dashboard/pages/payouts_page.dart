@@ -42,7 +42,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
         .doc(widget.batchId);
   }
 
-  /// Minimal UPI link launcher
   Future<void> _launchUpi(String upiId) async {
     final uri = Uri.parse('upi://pay?pa=$upiId&pn=${Uri.encodeComponent("Receiver")}&cu=INR');
 
@@ -54,7 +53,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
     }
   }
 
-  /// Upload proof image
   Future<String?> _uploadProof(String payoutId) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery);
@@ -69,14 +67,12 @@ class _PayoutsPageState extends State<PayoutsPage> {
     return await ref.getDownloadURL();
   }
 
-  /// Method to delete the screenshot proof
   Future<void> _deleteProof(String payoutId) async {
     try {
       final ref = _storage
           .ref()
           .child("payout_proofs/${widget.ownerUid}/${widget.batchId}/$payoutId.jpg");
       await ref.delete();
-
     } on FirebaseException catch (e) {
       if (e.code == 'object-not-found') {
         debugPrint("File not found in Storage, proceeding to clear Firestore link.");
@@ -95,12 +91,10 @@ class _PayoutsPageState extends State<PayoutsPage> {
     );
   }
 
-  /// Toggle status
   Future<void> _togglePaid(String payoutId, bool paid) async {
     await _payoutsRef.doc(payoutId).update({'status': paid ? 'paid' : 'pending'});
   }
 
-  /// Dialog for both adding and editing a payout
   void _showPayoutDialog({QueryDocumentSnapshot<Map<String, dynamic>>? doc}) {
     final isEditing = doc != null;
     final docData = doc?.data();
@@ -110,7 +104,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
     final amountController = TextEditingController();
     final upiController = TextEditingController();
     final noteController = TextEditingController();
-    // ✨ New controllers for bank details
     final accountNumberController = TextEditingController();
     final ifscController = TextEditingController();
 
@@ -118,7 +111,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
       amountController.text = docData?['amount']?.toString() ?? '';
       upiController.text = docData?['upiId'] as String? ?? '';
       noteController.text = docData?['note'] as String? ?? '';
-      // ✨ Pre-fill bank details if editing
       accountNumberController.text = docData?['accountNumber'] as String? ?? '';
       ifscController.text = docData?['ifsc'] as String? ?? '';
     }
@@ -154,12 +146,12 @@ class _PayoutsPageState extends State<PayoutsPage> {
                       TextFormField(
                         controller: upiController,
                         decoration: const InputDecoration(labelText: 'UPI ID (Optional)'),
-                        validator: (_) { // ✨ Custom validation
-                          if (upiController.text.trim().isEmpty &&
-                              accountNumberController.text.trim().isEmpty) {
-                            return 'Provide UPI or Bank Account';
+                        validator: (_) {
+                          if (upiController.text.trim().isNotEmpty ||
+                              accountNumberController.text.trim().isNotEmpty) {
+                            return null;
                           }
-                          return null;
+                          return 'Provide UPI or Bank Account';
                         },
                       ),
                       const SizedBox(height: 8),
@@ -193,12 +185,11 @@ class _PayoutsPageState extends State<PayoutsPage> {
                   onPressed: saving
                       ? null
                       : () async {
-                    if (!formKey.currentState!.validate()) return;
+                    if (!(formKey.currentState?.validate() ?? false)) return;
 
                     final amt = double.parse(amountController.text.trim());
                     final upi = upiController.text.trim();
                     final note = noteController.text.trim();
-                    // ✨ Get new bank details
                     final accNum = accountNumberController.text.trim();
                     final ifsc = ifscController.text.trim();
 
@@ -209,7 +200,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
                       'amount': amt,
                       'upiId': upi,
                       'note': note,
-                      // ✨ Add new fields to payload
                       'accountNumber': accNum,
                       'ifsc': ifsc,
                     };
@@ -301,7 +291,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
                     final status = data['status'] as String? ?? 'pending';
                     final proofUrl = data['proofUrl'] as String? ?? '';
                     final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
-                    // ✨ Get new bank fields from Firestore
                     final accountNumber = data['accountNumber'] as String? ?? '';
                     final ifsc = data['ifsc'] as String? ?? '';
                     final isPaid = status == 'paid';
@@ -315,7 +304,7 @@ class _PayoutsPageState extends State<PayoutsPage> {
                             color: isPaid ? Colors.green : Colors.orange,
                           ),
                           title: Text("₹${amount.toStringAsFixed(2)}"),
-                          subtitle: Column( // ✨ Subtitle updated to show new details
+                          subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (upi.isNotEmpty) Text('UPI: $upi'),
@@ -365,7 +354,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
                               IconButton(
                                 icon: const Icon(Icons.send, color: Colors.blue),
                                 tooltip: 'Pay via UPI',
-                                // ✨ Pay button is disabled if there's no UPI ID
                                 onPressed: upi.isEmpty ? null : () => _launchUpi(upi),
                               ),
                               IconButton(
@@ -381,7 +369,7 @@ class _PayoutsPageState extends State<PayoutsPage> {
                               Switch(
                                 value: isPaid,
                                 onChanged: (val) => _togglePaid(payoutId, val),
-                                activeColor: Colors.green,
+                                activeThumbColor: Colors.green,
                               ),
                             ],
                           ),
@@ -403,7 +391,6 @@ class _PayoutsPageState extends State<PayoutsPage> {
   }
 }
 
-/// Widget to display the image in full screen with zoom
 class FullScreenImageViewer extends StatelessWidget {
   final String imageUrl;
   const FullScreenImageViewer({super.key, required this.imageUrl});

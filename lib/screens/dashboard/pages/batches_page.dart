@@ -9,7 +9,7 @@ class BatchesPage extends StatelessWidget {
 
   void _showBatchDialog(BuildContext context,
       {Batch? existingBatch, String? batchId}) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     final nameController =
     TextEditingController(text: existingBatch?.receivedFromName ?? '');
     final amountController = TextEditingController(
@@ -28,7 +28,7 @@ class BatchesPage extends StatelessWidget {
           return AlertDialog(
             title: Text(existingBatch == null ? "Add Batch" : "Edit Batch"),
             content: Form(
-              key: _formKey,
+              key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -62,7 +62,7 @@ class BatchesPage extends StatelessWidget {
                 onPressed: saving
                     ? null
                     : () async {
-                  if (!_formKey.currentState!.validate()) return;
+                  if (!formKey.currentState!.validate()) return;
                   setDialogState(() => saving = true);
 
                   final data = {
@@ -70,7 +70,6 @@ class BatchesPage extends StatelessWidget {
                     "receivedAmount":
                     double.parse(amountController.text.trim()),
                     "referenceNote": noteController.text.trim(),
-                    "receivedDate": DateTime.now(),
                   };
 
                   if (batchId == null) {
@@ -129,9 +128,7 @@ class BatchesPage extends StatelessWidget {
     final firestoreService =
     Provider.of<FirestoreService>(context, listen: false);
 
-    return Scaffold(
-
-      body: StreamBuilder<List<Batch>>(
+    return StreamBuilder<List<Batch>>(
         stream: firestoreService.getBatches(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -175,11 +172,6 @@ class BatchesPage extends StatelessWidget {
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showBatchDialog(context),
-        child: const Icon(Icons.add),
-      ),
-    );
+      );
   }
 }

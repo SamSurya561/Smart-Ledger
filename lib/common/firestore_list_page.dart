@@ -1,20 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class FirestoreListPage extends StatelessWidget {
+class FirestoreListPage extends StatefulWidget {
   final String collectionName;
 
-  const FirestoreListPage({Key? key, required this.collectionName})
-      : super(key: key);
+  const FirestoreListPage({super.key, required this.collectionName});
 
+  @override
+  State<FirestoreListPage> createState() => _FirestoreListPageState();
+}
+
+class _FirestoreListPageState extends State<FirestoreListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(collectionName.toUpperCase())),
+      appBar: AppBar(title: Text(widget.collectionName.toUpperCase())),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection(collectionName)
-            .snapshots(), // ✅ removed forced orderBy
+            .collection(widget.collectionName)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -25,10 +29,11 @@ class FirestoreListPage extends StatelessWidget {
 
           final docs = snapshot.data!.docs;
 
-          // ✅ Sort locally: put newest on top if createdAt exists
           docs.sort((a, b) {
-            final aTime = (a['createdAt'] as Timestamp?)?.toDate();
-            final bTime = (b['createdAt'] as Timestamp?)?.toDate();
+            final aData = a.data() as Map<String, dynamic>?;
+            final bData = b.data() as Map<String, dynamic>?;
+            final aTime = (aData?['createdAt'] as Timestamp?)?.toDate();
+            final bTime = (bData?['createdAt'] as Timestamp?)?.toDate();
             if (aTime == null && bTime == null) return 0;
             if (aTime == null) return 1;
             if (bTime == null) return -1;
@@ -80,7 +85,7 @@ class FirestoreListPage extends StatelessWidget {
             onTap: () async {
               Navigator.pop(context);
               await FirebaseFirestore.instance
-                  .collection(collectionName)
+                  .collection(widget.collectionName)
                   .doc(docId)
                   .delete();
             },
@@ -100,7 +105,7 @@ class FirestoreListPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(docId == null ? "Add $collectionName" : "Edit $collectionName"),
+        title: Text(docId == null ? "Add ${widget.collectionName}" : "Edit ${widget.collectionName}"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -125,18 +130,18 @@ class FirestoreListPage extends StatelessWidget {
               final data = {
                 "name": nameController.text,
                 "amount": double.tryParse(amountController.text) ?? 0,
-                "createdAt": FieldValue.serverTimestamp(),
               };
 
               final ref =
-              FirebaseFirestore.instance.collection(collectionName);
+              FirebaseFirestore.instance.collection(widget.collectionName);
 
               if (docId == null) {
-                await ref.add(data);
+                await ref.add({...data, "createdAt": FieldValue.serverTimestamp()});
               } else {
                 await ref.doc(docId).update(data);
               }
 
+              if (!mounted) return;
               Navigator.pop(context);
             },
             child: const Text("Save"),
