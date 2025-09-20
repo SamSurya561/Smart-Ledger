@@ -1,0 +1,55 @@
+name: smartledger
+description: "A smart ledger and UPI deep link generator application."
+publish_to: 'none'
+version: 2.1.2
+
+environment:
+  sdk: '>=3.2.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^4.1.0
+  firebase_auth: ^6.0.2
+  cloud_firestore: ^6.0.1
+  google_sign_in: ^6.2.1
+  firebase_storage: 13.0.1
+  image_picker: ^1.1.2
+  permission_handler: ^11.4.0
+
+
+  # State Management (optional but good practice)
+  provider: ^6.1.2
+
+  # Biometrics
+  local_auth: ^2.2.0
+
+  # UPI & Sharing
+  url_launcher: ^6.2.5
+  share_plus: ^12.0.0
+
+  # File Generation
+  csv: ^6.0.0
+  pdf: ^3.10.8
+  path_provider: ^2.1.2
+  open_filex: ^4.4.0 # Better for opening files
+
+  # Utilities
+  intl: ^0.20.2
+
+  # Add this for saving theme preference
+  shared_preferences: ^2.3.2
+
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

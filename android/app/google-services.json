@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "270216978911",
+    "project_id": "smart-ledger-2f06b",
+    "storage_bucket": "smart-ledger-2f06b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270216978911:android:fd9b57dd0829e5dc2ca46a",
+        "android_client_info": {
+          "package_name": "com.surya.smartledger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "270216978911-7gl7thaqjjf77jc54l8oe1vt9d0tmbud.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.surya.smartledger",
+            "certificate_hash": "2e92540b0a2fea98c223efe8e6cb52e7b62dd10e"
+          }
+        },
+        {
+          "client_id": "270216978911-b16m9m0feqcfk8t3qdc6fuqpju1afbru.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZIoQ6pn0CU2u35dALyrguxDURvaM_8n0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "270216978911-b16m9m0feqcfk8t3qdc6fuqpju1afbru.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
